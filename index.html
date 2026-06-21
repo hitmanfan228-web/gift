@@ -336,33 +336,24 @@
 
         // ====== music (SoundCloud widget — starts when the button is clicked) ======
         let scWidget = null;
-        let musicReady = false;
-        let musicOn = false; // flips true only once playback is CONFIRMED via the PLAY event
+        let musicStarted = false;
 
-        function initMusic() {
+        function startMusic() {
+            // load the iframe ONLY on first click, with auto_play baked into
+            // the URL — this keeps the iframe's own load (and its autoplay)
+            // inside the same user-gesture window as the tap, which mobile
+            // Safari/Chrome require for audio to actually play
+            if (musicStarted) return;
+            musicStarted = true;
             const frame = document.getElementById('scFrame');
-            frame.src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(SC_TRACK_URL)}&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_artwork=false&visual=false&buying=false&sharing=false&download=false`;
+            frame.src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(SC_TRACK_URL)}&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_artwork=false&visual=false&buying=false&sharing=false&download=false`;
             frame.addEventListener('load', () => {
                 scWidget = SC.Widget(frame);
                 scWidget.bind(SC.Widget.Events.READY, () => {
-                    musicReady = true;
                     scWidget.setVolume(MUSIC_VOLUME);
-                    scWidget.bind(SC.Widget.Events.PLAY, () => { musicOn = true; });
-                    // no autoplay attempt here — first play() happens from the
-                    // button's click handler below, a real user gesture the
-                    // browser won't block
                 });
             });
         }
-
-        function startMusic() {
-            if (!musicReady || musicOn || !scWidget) return;
-            scWidget.setVolume(MUSIC_VOLUME);
-            scWidget.play();
-        }
-
-        // kick off loading right away so the widget is ready by the time she clicks
-        initMusic();
     </script>
 
 </body>
